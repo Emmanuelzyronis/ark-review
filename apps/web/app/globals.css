@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ark-bg: #0C1A3A;
+  --color-ark-bg-secondary: #1A2E5A;
+  --color-ark-bg-tertiary: #243F6E;
+  --color-ark-border: #2A4A7A;
+  --color-ark-primary: #3B82F6;
+  --color-ark-primary-hover: #2563EB;
+  --color-ark-accent: #EC4899;
+  --color-ark-critical: #EF4444;
+  --color-ark-high: #F59E0B;
+  --color-ark-success: #10B981;
+  --color-ark-text-primary: #F1F5F9;
+  --color-ark-text-secondary: #94A3B8;
+  --color-ark-text-muted: #64748B;
+}
+
+:root {
+  --primary: #3B82F6;
+  --primary-hover: #2563EB;
+  --accent: #EC4899;
+  --bg: #0C1A3A;
+  --bg-secondary: #1A2E5A;
+  --bg-tertiary: #243F6E;
+  --border: #2A4A7A;
+  --foreground: #F1F5F9;
+  --foreground-secondary: #94A3B8;
+  --foreground-muted: #64748B;
+  --critical: #EF4444;
+  --high: #F59E0B;
+  --success: #10B981;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
+}
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Code */
+code, pre {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
+/* Waveform animation */
+@keyframes waveform {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+.waveform-bar {
+  animation: waveform 1.2s ease-in-out infinite alternate;
+}
+
+/* Pulse soft */
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pulse-soft {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
