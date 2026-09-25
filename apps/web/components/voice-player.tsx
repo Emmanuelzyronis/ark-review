@@ -71,6 +71,22 @@ export function VoicePlayer({ audioUrl, transcript, duration, status }: VoicePla
     setProgress(pct * 100)
   }
 
+  const seekByKeyboard = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = 5 // seconds per arrow key press
+    const duration = audioRef.current?.duration || totalDuration
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const next = Math.min((audioRef.current?.currentTime || (progress / 100 * duration)) + step, duration)
+      if (audioRef.current) audioRef.current.currentTime = next
+      setProgress((next / duration) * 100)
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      const next = Math.max((audioRef.current?.currentTime || (progress / 100 * duration)) - step, 0)
+      if (audioRef.current) audioRef.current.currentTime = next
+      setProgress((next / duration) * 100)
+    }
+  }
+
   if (status === 'pending' || status === 'generating') {
     return (
       <div className="bg-ark-bg-tertiary border border-ark-border rounded-ark-lg p-5">
@@ -132,10 +148,14 @@ export function VoicePlayer({ audioUrl, transcript, duration, status }: VoicePla
           <div
             className="h-1.5 bg-ark-border rounded-full cursor-pointer relative"
             onClick={seek}
+            onKeyDown={seekByKeyboard}
             role="slider"
+            tabIndex={0}
+            aria-label="Playback position"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
+            aria-valuetext={`${formatDuration(Math.round(currentTime))} of ${formatDuration(totalDuration)}`}
           >
             <div
               className="h-full bg-ark-primary rounded-full transition-all duration-100"

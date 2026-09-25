@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from 'react'
 import { reposApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, Settings } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CheckCircle, Settings, AlertTriangle } from 'lucide-react'
 
 const FOCUS_AREAS = ['security', 'performance', 'architecture', 'style', 'testing']
 const STRICTNESS = ['low', 'medium', 'high', 'strict'] as const
@@ -23,6 +24,7 @@ export default function SettingsPage({
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [patternInput, setPatternInput] = useState('')
 
   useEffect(() => {
@@ -37,12 +39,13 @@ export default function SettingsPage({
 
   const save = async () => {
     setSaving(true)
+    setSaveError('')
     try {
       await reposApi.updateConfig(owner, repo, config)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save')
+      setSaveError(err instanceof Error ? err.message : 'Failed to save settings. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -68,7 +71,20 @@ export default function SettingsPage({
   }
 
   if (loading) {
-    return <div className="p-6 text-ark-text-muted">Loading settings...</div>
+    return (
+      <div className="p-6 max-w-2xl mx-auto space-y-8" aria-busy="true" aria-label="Loading settings">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-ark-bg-secondary border border-ark-border rounded-ark-xl p-6 space-y-4">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -177,8 +193,17 @@ export default function SettingsPage({
         </p>
       </div>
 
+      {saveError && (
+        <div
+          className="bg-red-900/30 border border-red-700/50 rounded-ark-md px-4 py-3 text-sm text-red-300 flex items-center gap-2"
+          role="alert"
+        >
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          {saveError}
+        </div>
+      )}
       <Button onClick={save} loading={saving} className="gap-2">
-        {saved && <CheckCircle className="h-4 w-4" />}
+        {saved && <CheckCircle className="h-4 w-4" aria-hidden="true" />}
         {saved ? 'Saved!' : 'Save settings'}
       </Button>
     </div>

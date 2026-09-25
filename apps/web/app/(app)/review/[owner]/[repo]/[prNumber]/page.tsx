@@ -136,9 +136,19 @@ export default function ReviewPage({
   if (!pr) {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center py-24">
-        <div className="text-ark-text-primary font-medium">PR not found</div>
-        <Link href={`/dashboard/${owner}/${repo}`} className="text-ark-primary text-sm hover:text-ark-primary-hover mt-2 inline-flex items-center gap-1">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to repository
+        <div className="h-16 w-16 rounded-ark-xl bg-ark-bg-secondary border border-ark-border flex items-center justify-center mx-auto mb-4">
+          <GitPullRequest className="h-8 w-8 text-ark-text-muted" aria-hidden="true" />
+        </div>
+        <h2 className="text-xl font-semibold text-ark-text-primary mb-2">Pull request not found</h2>
+        <p className="text-ark-text-secondary text-sm mb-6 max-w-sm mx-auto">
+          This PR may have been deleted or the review hasn't been triggered yet.
+        </p>
+        <Link
+          href={`/dashboard/${owner}/${repo}`}
+          className="inline-flex items-center gap-1.5 text-sm text-ark-primary hover:text-ark-primary-hover transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          Back to {owner}/{repo}
         </Link>
       </div>
     )
