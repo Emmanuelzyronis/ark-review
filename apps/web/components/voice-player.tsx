@@ -103,6 +103,22 @@ export function VoicePlayer({ audioUrl, transcript, duration, status }: VoicePla
     )
   }
 
+  if (status === 'failed' || status === 'error') {
+    return (
+      <div className="bg-ark-bg-tertiary border border-red-700/30 rounded-ark-lg p-5">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-red-900/30 flex items-center justify-center">
+            <Volume2 className="h-5 w-5 text-red-400" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-ark-text-primary">Voice walkthrough unavailable</div>
+            <div className="text-xs text-ark-text-muted">TTS generation failed. Re-running the review will retry.</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-ark-bg-tertiary border border-ark-border rounded-ark-lg p-5 space-y-4">
       {audioUrl && <audio ref={audioRef} src={audioUrl} preload="metadata" />}

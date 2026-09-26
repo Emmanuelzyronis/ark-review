@@ -66,7 +66,7 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ark-accent-muted/40 border border-ark-accent/30 text-ark-accent text-xs font-medium mb-8">
           <Star className="h-3.5 w-3.5" />
-          AMD Developer Hackathon: ACT III — 2026
+          Voice-driven code review — available now
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold text-ark-text-primary mb-6 leading-tight">
@@ -172,11 +172,11 @@ export default function LandingPage() {
             Stop waiting 48 hours for a silent text comment
           </h2>
           <p className="text-ark-text-secondary mb-8 max-w-lg mx-auto">
-            Get a voice walkthrough of every PR in under 60 seconds. Free during the hackathon.
+            Get an architectural walkthrough on every PR, automatically — in under 60 seconds.
           </p>
           <Link href="/auth/register">
             <Button size="lg" className="gap-2">
-              Get started — it's free
+              Get started free
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -188,7 +188,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-ark-primary" />
-            <span className="text-sm text-ark-text-muted">ArkReview — AMD Developer Hackathon 2026</span>
+            <span className="text-sm text-ark-text-muted">ArkReview</span>
           </div>
           <div className="flex items-center gap-4 text-sm text-ark-text-muted">
             <Link href="/auth/login" className="hover:text-ark-text-secondary transition-colors">Sign in</Link>

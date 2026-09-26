@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { VoicePlayer } from '@/components/voice-player'
 import { IssueGroupAccordion } from '@/components/issue-flag-card'
 import { ReviewPanelSkeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, GitPullRequest, CheckCircle, XCircle, RefreshCw, Volume2 } from 'lucide-react'
+import { ArrowLeft, GitPullRequest, CheckCircle, XCircle, RefreshCw, Volume2, AlertTriangle, Copy } from 'lucide-react'
 
 interface PR {
   github_pr_number: number
@@ -60,6 +60,8 @@ export default function ReviewPage({
   const [submitted, setSubmitted] = useState<'approved' | 'changes_requested' | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [triggering, setTriggering] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [severityFilter, setSeverityFilter] = useState<'all' | 'Critical' | 'High' | 'Low' | 'Info'>('all')
 
   const showToast = (msg: string) => {
     setToastMsg(msg)
@@ -68,6 +70,7 @@ export default function ReviewPage({
 
   const fetchData = async () => {
     setLoading(true)
+    setFetchError(null)
     try {
       const [prRes, issuesRes] = await Promise.all([
         prsApi.get(owner, repo, parseInt(prNumber)),
@@ -78,13 +81,30 @@ export default function ReviewPage({
       setIssues(issuesRes.issues as ReviewIssue[])
       setReviewBody(prData.architectural_summary || '')
     } catch (err) {
-      console.error(err)
+      const msg = err instanceof Error ? err.message : 'Unable to load this review. Check your connection and try again.'
+      setFetchError(msg)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => { fetchData() }, [owner, repo, prNumber])
+
+  const copyFindings = async () => {
+    const md = issues.map(i => {
+      const header = `## [${i.severity}] ${i.description}`
+      const file = `**File:** \`${i.file_path}${i.line_start ? ` L${i.line_start}${i.line_end && i.line_end !== i.line_start ? `-${i.line_end}` : ''}` : ''}\``
+      const evidence = i.evidence ? `\n**Evidence:**\n\`\`\`\n${i.evidence}\n\`\`\`` : ''
+      const fix = i.recommended_fix ? `\n**Fix:** ${i.recommended_fix}` : ''
+      return [header, file, evidence, fix].filter(Boolean).join('\n')
+    }).join('\n\n---\n\n')
+    try {
+      await navigator.clipboard.writeText(md)
+      showToast('Findings copied as markdown')
+    } catch {
+      showToast('Copy failed — check clipboard permissions')
+    }
+  }
 
   const triggerReview = async () => {
     setTriggering(true)
@@ -133,6 +153,31 @@ export default function ReviewPage({
     )
   }
 
+  if (fetchError) {
+    return (
+      <div className="p-6 max-w-5xl mx-auto">
+        <Link
+          href={`/dashboard/${owner}/${repo}`}
+          className="inline-flex items-center gap-1.5 text-sm text-ark-text-muted hover:text-ark-text-secondary transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {owner}/{repo}
+        </Link>
+        <div className="bg-red-900/20 border border-red-700/40 rounded-ark-xl p-8 flex items-start gap-4" role="alert">
+          <AlertTriangle className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="text-base font-semibold text-red-300 mb-1">Failed to load review</div>
+            <div className="text-sm text-red-400/80 mb-4">{fetchError}</div>
+            <Button size="sm" variant="secondary" onClick={fetchData} className="gap-2">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Try again
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (!pr) {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center py-24">
@@ -153,6 +198,25 @@ export default function ReviewPage({
       </div>
     )
   }
+
+  const severityLevels = ['all', 'Critical', 'High', 'Low', 'Info'] as const
+  const severityColors: Record<string, string> = {
+    all: 'text-ark-text-secondary hover:bg-ark-bg-tertiary',
+    Critical: 'text-red-300 hover:bg-red-900/20',
+    High: 'text-amber-300 hover:bg-amber-900/20',
+    Low: 'text-blue-300 hover:bg-blue-900/20',
+    Info: 'text-ark-text-muted hover:bg-ark-bg-tertiary',
+  }
+  const severityActiveColors: Record<string, string> = {
+    all: 'bg-ark-bg-tertiary text-ark-text-primary border-ark-primary/50',
+    Critical: 'bg-red-900/30 text-red-300 border-red-700/50',
+    High: 'bg-amber-900/30 text-amber-300 border-amber-700/50',
+    Low: 'bg-blue-900/30 text-blue-300 border-blue-700/50',
+    Info: 'bg-ark-bg-tertiary text-ark-text-secondary border-ark-border',
+  }
+  const filteredIssues = severityFilter === 'all' ? issues : issues.filter(i => i.severity === severityFilter)
+  const issueCounts: Record<string, number> = { all: issues.length }
+  for (const i of issues) issueCounts[i.severity] = (issueCounts[i.severity] || 0) + 1
 
   const transcript = pr.transcript_json
     ? pr.transcript_json.map(w => w.text).join(' ')
@@ -258,12 +322,44 @@ export default function ReviewPage({
 
       {/* Issues */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 className="text-sm font-semibold text-ark-text-primary">
             Flagged Issues ({issues.length})
           </h2>
+          {issues.length > 0 && (
+            <button
+              onClick={copyFindings}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-ark-sm text-xs text-ark-text-muted hover:bg-ark-bg-secondary hover:text-ark-text-secondary transition-colors border border-transparent hover:border-ark-border"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy findings
+            </button>
+          )}
         </div>
-        <IssueGroupAccordion issues={issues} />
+
+        {issues.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+            {severityLevels.map(level => {
+              const count = issueCounts[level]
+              if (level !== 'all' && !count) return null
+              const isActive = severityFilter === level
+              return (
+                <button
+                  key={level}
+                  onClick={() => setSeverityFilter(level)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    isActive ? severityActiveColors[level] : `border-transparent ${severityColors[level]}`
+                  }`}
+                >
+                  {level === 'all' ? 'All' : level}
+                  {count !== undefined && <span className="ml-1 opacity-70">{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        <IssueGroupAccordion issues={filteredIssues} />
       </div>
 
       {/* Review action bar */}
@@ -275,7 +371,7 @@ export default function ReviewPage({
           onChange={e => setReviewBody(e.target.value)}
           placeholder="Edit the review body before submitting..."
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           {submitted === 'approved' ? (
             <div className="flex items-center gap-2 text-green-400 text-sm">
               <CheckCircle className="h-4 w-4" />
@@ -287,12 +383,12 @@ export default function ReviewPage({
               Changes requested and posted
             </div>
           ) : (
-            <>
+            <div className="flex gap-2 flex-1">
               <Button
                 variant="danger"
                 onClick={handleRequestChanges}
                 loading={submitting}
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-none"
               >
                 <XCircle className="h-4 w-4" />
                 Request Changes
@@ -301,15 +397,15 @@ export default function ReviewPage({
                 variant="secondary"
                 onClick={handleApprove}
                 loading={submitting}
-                className="gap-2 border-green-700/50 text-green-300 hover:bg-green-900/20"
+                className="gap-2 flex-1 sm:flex-none border-green-700/50 text-green-300 hover:bg-green-900/20"
               >
                 <CheckCircle className="h-4 w-4" />
                 Approve
               </Button>
-            </>
+            </div>
           )}
-          <div className="flex-1" />
-          <span className="text-xs text-ark-text-muted">
+          <div className="hidden sm:flex flex-1" />
+          <span className="text-xs text-ark-text-muted self-end sm:self-auto">
             {reviewBody.length} chars
           </span>
         </div>

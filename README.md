@@ -4,6 +4,38 @@
 
 ---
 
+## Demo
+
+> Interactive terminal demo — [view the full case study](https://emmanuelzyronis.vercel.app/work/ark-review)
+
+```text
+$ curl -s -X POST http://localhost:3001/api/review \
+  -d '{"diff":"- const token = req.headers.authorization?.split(\" \")[1];\n+ const token = req.query.token as string;"}' | jq .
+
+Analyzing diff ...
+
+{
+  "findings": [
+    {
+      "severity": "Critical",
+      "type": "security",
+      "title": "JWT in query string — tokens leak into logs and browser history",
+      "recommendation": "Revert to Authorization header."
+    },
+    {
+      "severity": "High",
+      "type": "correctness",
+      "title": "jwt.verify() result may not be awaited correctly",
+      "recommendation": "Use synchronous overload or await the promisified version."
+    }
+  ],
+  "voice_walkthrough_url": "/api/review/voice/rw_8821a",
+  "severity_summary": { "critical": 1, "high": 1, "medium": 0, "low": 0 }
+}
+```
+
+---
+
 ## The Problem
 
 PRs sit for 24-72 hours waiting for senior engineer attention. AI tools like Cursor and Copilot generate code 5x faster than teams can review it. METR's 2026 controlled study found experienced developers are 19% slower with AI coding assistants — the bottleneck is review, not generation. CodeRabbit posts shallow text comments; no tool offers voice-driven architectural walkthroughs or detection of the architectural debt that AI-generated code silently accumulates.

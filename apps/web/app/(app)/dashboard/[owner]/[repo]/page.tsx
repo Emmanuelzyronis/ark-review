@@ -215,6 +215,12 @@ export default function RepoDashboardPage({
                 onChange={e => setDiff(e.target.value)}
                 placeholder="+ const result = await db.query('SELECT * FROM users')"
               />
+              {diff.length > 0 && diff.length < 50 && (
+                <p className="text-xs text-amber-400 mt-1">Diff looks short — paste the full unified diff for the best review quality.</p>
+              )}
+              {diff.length >= 50 && !diff.includes('+') && !diff.includes('-') && (
+                <p className="text-xs text-amber-400 mt-1">Doesn't look like a diff — include lines starting with <code className="font-mono">+</code> or <code className="font-mono">-</code>.</p>
+              )}
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" className="flex-1" onClick={() => { setShowAddPR(false); setAddError('') }}>
